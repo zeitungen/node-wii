@@ -83,7 +83,7 @@ int WiiMote::WatchMessages() {
   ev_timer_init(&this->msg_timer, TriggerMessages, 1, .02);
   this->msg_timer.data=this;
 
-  ev_timer_start(&this->msg_timer);
+  ev_timer_start(EV_DEFAULT_UC_ &this->msg_timer);
 
   return 0;
 }
@@ -227,7 +227,7 @@ void WiiMote::TriggerMessages(EV_P_ ev_timer *watcher, int revents) {
   }
 
   if(wiimote->msg_timer.repeat == 0) {
-    ev_timer_stop(&wiimote->msg_timer);
+    ev_timer_stop(EV_DEFAULT_UC_ &wiimote->msg_timer);
     wiimote->Unref();
   }
 }
