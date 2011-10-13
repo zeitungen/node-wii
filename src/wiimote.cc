@@ -43,8 +43,8 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   target->Set(String::NewSymbol("WiiMote"), constructor_template->GetFunction());
 }
 
-int WiiMote::Connect(const char* mac) {
-  str2ba(mac, &this->mac);
+int WiiMote::Connect(bdaddr_t * mac) {
+  bacpy(&this->mac, mac);
 
   if(!(this->wiimote = cwiid_open(&this->mac, 0))) {
     return -1;
@@ -261,7 +261,8 @@ Handle<Value> WiiMote::Connect(const Arguments& args) {
   ar->wiimote = wiimote;
 
   String::Utf8Value mac(args[0]);
-  ar->mac = *mac;
+  str2ba(*mac, &ar->mac); // TODO Validate the mac and throw an exception if invalid
+
   ar->callback = Persistent<Function>::New(callback);
 
   wiimote->Ref();
@@ -275,7 +276,7 @@ Handle<Value> WiiMote::Connect(const Arguments& args) {
 int WiiMote::EIO_Connect(eio_req* req) {
   connect_request* ar = static_cast<connect_request* >(req->data);
 
-  ar->err = ar->wiimote->Connect(ar->mac);
+  ar->err = ar->wiimote->Connect(&ar->mac);
 
   return 0;
 }

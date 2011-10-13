@@ -71,7 +71,7 @@ class WiiMote : public EventEmitter {
      * Returns:
      *   a string explaining the error code.
      */
-    int Connect(const char* mac);
+    int Connect(bdaddr_t * mac);
     int Rumble(bool on);
     int Led(int index, bool on);
     int IrReporting(bool on);
@@ -149,7 +149,7 @@ class WiiMote : public EventEmitter {
 
     struct connect_request {
       WiiMote* wiimote;
-      const char* mac;
+      bdaddr_t mac;
       int err;
       v8::Persistent<v8::Function> callback;
     };
