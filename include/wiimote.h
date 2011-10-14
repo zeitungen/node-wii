@@ -84,11 +84,12 @@ class WiiMote : public EventEmitter {
     /**
      * Constructor: WiiMote
      */
-    WiiMote() {};
+    WiiMote();
     /**
      * Deconstructor: WiiMote
      */
-    ~WiiMote() {};
+    virtual ~WiiMote();
+
     /**
      * Function: New
      *

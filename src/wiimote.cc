@@ -15,6 +15,18 @@
 using namespace v8;
 using namespace node;
 
+/**
+ * Constructor: WiiMote
+ */
+WiiMote::WiiMote() {
+	wiimote = NULL;
+};
+/**
+ * Deconstructor: WiiMote
+ */
+WiiMote::~WiiMote() {
+};
+
 void WiiMote::Initialize (Handle<v8::Object> target) {
   HandleScope scope;
 
@@ -56,6 +68,8 @@ int WiiMote::Connect(bdaddr_t * mac) {
 int WiiMote::Rumble(bool on) {
   unsigned char rumble = on ? 1 : 0;
 
+  assert(this->wiimote != NULL);
+
   if(cwiid_set_rumble(this->wiimote, rumble)) {
     return -1;
   }
@@ -65,6 +79,8 @@ int WiiMote::Rumble(bool on) {
 
 int WiiMote::Led(int index, bool on) {
   int indexes[] = { CWIID_LED1_ON, CWIID_LED2_ON, CWIID_LED3_ON, CWIID_LED4_ON };
+
+  assert(this->wiimote != NULL);
 
   cwiid_get_state(this->wiimote, &this->state);
 
@@ -89,6 +105,8 @@ int WiiMote::WatchMessages() {
 }
 
 int WiiMote::IrReporting(bool on) {
+	assert(this->wiimote != NULL);
+
   if(cwiid_get_state(this->wiimote, &this->state)) {
     return -1;
   }
@@ -106,6 +124,8 @@ int WiiMote::IrReporting(bool on) {
 int WiiMote::AccReporting(bool on) {
   int mode = this->state.rpt_mode;
 
+  assert(this->wiimote != NULL);
+
   mode = on ? mode | CWIID_RPT_ACC : mode & CWIID_RPT_ACC;
 
   if(cwiid_set_rpt_mode(this->wiimote, mode)) {
@@ -118,6 +138,8 @@ int WiiMote::AccReporting(bool on) {
 int WiiMote::ExtReporting(bool on) {
   int mode = this->state.rpt_mode;
 
+  assert(this->wiimote != NULL);
+
   mode = on ? mode | CWIID_RPT_EXT : mode & CWIID_RPT_EXT;
 
   if(cwiid_set_rpt_mode(this->wiimote, mode)) {
@@ -128,6 +150,9 @@ int WiiMote::ExtReporting(bool on) {
 }
 
 int WiiMote::ButtonReporting(bool on) {
+
+	assert(this->wiimote != NULL);
+
   if(cwiid_get_state(this->wiimote, &this->state)) {
     return -1;
   }
@@ -148,6 +173,8 @@ void WiiMote::TriggerMessages(EV_P_ ev_timer *watcher, int revents) {
   HandleScope scope;
 
   Local<Value> argv[1];
+
+  assert(wiimote->wiimote != NULL);
 
   if(cwiid_get_state(wiimote->wiimote, &wiimote->state)) {
     argv[0] = Integer::New(-1);
@@ -275,6 +302,8 @@ Handle<Value> WiiMote::Connect(const Arguments& args) {
 
 int WiiMote::EIO_Connect(eio_req* req) {
   connect_request* ar = static_cast<connect_request* >(req->data);
+
+  assert(ar->wiimote != NULL);
 
   ar->err = ar->wiimote->Connect(&ar->mac);
 
