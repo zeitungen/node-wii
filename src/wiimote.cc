@@ -109,6 +109,7 @@ int WiiMote::WatchMessages() {
   ev_timer_init(&this->msg_timer, TriggerMessages, 1, .02);
   this->msg_timer.data=this;
 
+  this->Ref(); // Hold a reference as long as the timer is scheduled
   ev_timer_start(EV_DEFAULT_UC_ &this->msg_timer);
 
   return 0;
@@ -326,12 +327,12 @@ int WiiMote::EIO_AfterConnect(eio_req* req) {
   connect_request* ar = static_cast<connect_request* >(req->data);
   ev_unref(EV_DEFAULT_UC);
 
-
   Local<Value> argv[1];
+
   argv[0] = Integer::New(ar->err);
 
-  if(ar->wiimote->WatchMessages()) {
-    argv[0] = Integer::New(-1);   
+  if (ar->err == 0 && ar->wiimote->WatchMessages()) {
+    argv[0] = Integer::New(-1);
   }
 
   ar->wiimote->Unref();
