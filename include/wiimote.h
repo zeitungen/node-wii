@@ -72,6 +72,7 @@ class WiiMote : public EventEmitter {
      *   a string explaining the error code.
      */
     int Connect(bdaddr_t * mac);
+    int Disconnect();
     int Rumble(bool on);
     int Led(int index, bool on);
     int IrReporting(bool on);
@@ -112,6 +113,8 @@ class WiiMote : public EventEmitter {
     static v8::Handle<v8::Value> Connect(const v8::Arguments& args);
     static int EIO_Connect(eio_req* req);
     static int EIO_AfterConnect(eio_req* req);
+
+    static v8::Handle<v8::Value> Disconnect(const v8::Arguments& args);
 
     static void TriggerMessages(EV_P_ ev_timer *watcher, int revents);
 

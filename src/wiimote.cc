@@ -25,6 +25,7 @@ WiiMote::WiiMote() {
  * Deconstructor: WiiMote
  */
 WiiMote::~WiiMote() {
+	Disconnect();
 };
 
 void WiiMote::Initialize (Handle<v8::Object> target) {
@@ -45,6 +46,7 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   constructor_template->SetClassName(String::NewSymbol("WiiMote"));
 
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "connect", Connect);
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "disconnect", Disconnect);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "rumble", Rumble);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "led", Led);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "ir", IrReporting);
@@ -62,6 +64,14 @@ int WiiMote::Connect(bdaddr_t * mac) {
     return -1;
   }
 
+  return 0;
+}
+
+int WiiMote::Disconnect() {
+  if (this->wiimote) {
+    cwiid_close(this->wiimote);
+    this->wiimote = NULL;
+  }
   return 0;
 }
 
@@ -340,6 +350,15 @@ int WiiMote::EIO_AfterConnect(eio_req* req) {
 
   return 0;
 }
+
+Handle<Value> WiiMote::Disconnect(const Arguments& args) {
+  HandleScope scope;
+
+  WiiMote* wiimote = ObjectWrap::Unwrap<WiiMote>(args.This());
+
+  return Integer::New(wiimote->Disconnect());
+}
+
 
 Handle<Value> WiiMote::Rumble(const Arguments& args) {
   HandleScope scope;
