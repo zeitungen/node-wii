@@ -39,13 +39,12 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   Local<FunctionTemplate> t = FunctionTemplate::New(New);
   t->Inherit(EventEmitter::constructor_template);
 
-  ir_event = NODE_PSYMBOL("ir");
-  acc_event = NODE_PSYMBOL("acc");
+  ir_event      = NODE_PSYMBOL("ir");
+  acc_event     = NODE_PSYMBOL("acc");
   nunchuk_event = NODE_PSYMBOL("nunchuk");
-  error_event = NODE_PSYMBOL("error");
-  buttondown_event = NODE_PSYMBOL("buttondown");
-  buttonup_event = NODE_PSYMBOL("buttonup");
-  
+  error_event   = NODE_PSYMBOL("error");
+  button_event  = NODE_PSYMBOL("button");
+
   constructor_template = Persistent<FunctionTemplate>::New(t);
   constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
   constructor_template->SetClassName(String::NewSymbol("WiiMote"));
@@ -86,7 +85,7 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
 int WiiMote::Connect(bdaddr_t * mac) {
   bacpy(&this->mac, mac);
 
-  if(!(this->wiimote = cwiid_open(&this->mac, 0))) {
+  if(!(this->wiimote = cwiid_open(&this->mac, CWIID_FLAG_MESG_IFC))) {
     return -1;
   }
 
@@ -95,9 +94,19 @@ int WiiMote::Connect(bdaddr_t * mac) {
 
 int WiiMote::Disconnect() {
   if (this->wiimote) {
+
+    if (cwiid_get_data(this->wiimote)) {
+      cwiid_set_data(this->wiimote, NULL);
+      cwiid_set_mesg_callback(this->wiimote, WiiMote::HandleMessages);
+
+      this->Unref();
+      ev_unref(EV_DEFAULT_UC);
+    }
+
     cwiid_close(this->wiimote);
     this->wiimote = NULL;
   }
+
   return 0;
 }
 
@@ -118,7 +127,9 @@ int WiiMote::Led(int index, bool on) {
 
   assert(this->wiimote != NULL);
 
-  cwiid_get_state(this->wiimote, &this->state);
+  if(cwiid_get_state(this->wiimote, &this->state)) {
+    return -1;
+  }
 
   int led = this->state.led;
 
@@ -131,163 +142,217 @@ int WiiMote::Led(int index, bool on) {
   return 0;
 }
 
-int WiiMote::WatchMessages() {
-  ev_timer_init(&this->msg_timer, TriggerMessages, 1, .02);
-  this->msg_timer.data=this;
-
-  this->Ref(); // Hold a reference as long as the timer is scheduled
-  ev_timer_start(EV_DEFAULT_UC_ &this->msg_timer);
-
-  return 0;
-}
-
-int WiiMote::IrReporting(bool on) {
-	assert(this->wiimote != NULL);
+/**
+ * Turns on or off the particular modes passed
+ */
+int WiiMote::Reporting(int mode, bool on) {
+  assert(this->wiimote != NULL);
 
   if(cwiid_get_state(this->wiimote, &this->state)) {
     return -1;
   }
-  int mode = this->state.rpt_mode;
 
-  mode = on ? mode | CWIID_RPT_IR : mode & CWIID_RPT_IR;
+  int newmode = this->state.rpt_mode;
 
-  if(cwiid_set_rpt_mode(this->wiimote, mode)) {
+  newmode = on ? newmode | mode : newmode & ~mode;
+
+  if(cwiid_set_rpt_mode(this->wiimote, newmode)) {
     return -1;
   }
 
   return 0;
 }
 
-int WiiMote::AccReporting(bool on) {
-  int mode = this->state.rpt_mode;
+void WiiMote::HandleAccMessage(struct timespec *ts, cwiid_acc_mesg * msg) {
+  HandleScope scope;
 
-  assert(this->wiimote != NULL);
+  Local<Object> pos = Object::New();   // Create array of x,y,z
+  pos->Set(String::NewSymbol("x"), Integer::New(msg->acc[CWIID_X]) );
+  pos->Set(String::NewSymbol("y"), Integer::New(msg->acc[CWIID_Y]) );
+  pos->Set(String::NewSymbol("z"), Integer::New(msg->acc[CWIID_Z]) );
 
-  mode = on ? mode | CWIID_RPT_ACC : mode & CWIID_RPT_ACC;
+  Local<Value> argv[1] = { pos };
+  this->Emit(acc_event, 1, argv);
+}
 
-  if(cwiid_set_rpt_mode(this->wiimote, mode)) {
-    return -1;
+void WiiMote::HandleButtonMessage(struct timespec *ts, cwiid_btn_mesg * msg) {
+  HandleScope scope;
+
+  Local<Integer> btn = Integer::New(msg->buttons);
+
+  Local<Value> argv[1] = { btn };
+  this->Emit(button_event, 1, argv);
+}
+
+void WiiMote::HandleErrorMessage(struct timespec *ts, cwiid_error_mesg * msg) {
+  HandleScope scope;
+
+  Local<Integer> btn = Integer::New(msg->error);
+
+  Local<Value> argv[1] = { btn };
+  this->Emit(error_event, 1, argv);
+}
+
+void WiiMote::HandleNunchukMessage(struct timespec *ts, cwiid_nunchuk_mesg * msg) {
+
+}
+
+void WiiMote::HandleIRMessage(struct timespec *ts, cwiid_ir_mesg * msg) {
+  HandleScope scope;
+  Local<Array> poss = Array::New(CWIID_IR_SRC_COUNT);
+
+  // Check IR data sources
+  for(int i=0; i < CWIID_IR_SRC_COUNT; i++) {
+    if (!msg->src[i].valid)
+      break; // Once we find one invalid then we stop
+
+    // Create array of x,y
+    Local<Object> pos = Object::New();
+    pos->Set(String::NewSymbol("x"), Integer::New( msg->src[i].pos[CWIID_X] ));
+    pos->Set(String::NewSymbol("y"), Integer::New( msg->src[i].pos[CWIID_X] ));
+    pos->Set(String::NewSymbol("size"), Integer::New( msg->src[i].size ));
+
+    poss->Set(Integer::New(i), pos);
   }
 
+  Local<Value> argv[1] = { poss };
+  this->Emit(ir_event, 1, argv);
+}
+
+int WiiMote::HandleMessagesAfter(eio_req *req) {
+  message_request* r = static_cast<message_request* >(req->data);
+  WiiMote * self = r->wiimote;
+
+  for (int i = 0; i < r->len; i++) {
+    switch(r->mesgs[i].type) {
+      case CWIID_MESG_STATUS:
+        self->HandleStatusMessage(&r->timestamp, (cwiid_status_mesg *)&r->mesgs[i]);
+        break;
+
+      case CWIID_MESG_BTN:
+        self->HandleButtonMessage(&r->timestamp, (cwiid_btn_mesg *)&r->mesgs[i]);
+        break;
+
+      case CWIID_MESG_ACC:
+        self->HandleAccMessage(&r->timestamp, (cwiid_acc_mesg *)&r->mesgs[i]);
+        break;
+
+      case CWIID_MESG_IR:
+        self->HandleIRMessage(&r->timestamp, (cwiid_ir_mesg *)&r->mesgs[i]);
+        break;
+
+      case CWIID_MESG_NUNCHUK:
+        self->HandleNunchukMessage(&r->timestamp, (cwiid_nunchuk_mesg *)&r->mesgs[i]);
+        break;
+
+      case CWIID_MESG_ERROR:
+        self->HandleErrorMessage(&r->timestamp, (cwiid_error_mesg *)&r->mesgs[i]);
+        break;
+
+      case CWIID_MESG_UNKNOWN:
+      case CWIID_MESG_CLASSIC:
+      case CWIID_MESG_BALANCE:
+      case CWIID_MESG_MOTIONPLUS:
+      default:
+        break;
+    }
+  }
+
+  free(req);
   return 0;
 }
 
-int WiiMote::ExtReporting(bool on) {
-  int mode = this->state.rpt_mode;
+void WiiMote::HandleMessages(cwiid_wiimote_t *wiimote, int len, union cwiid_mesg mesgs[], struct timespec *timestamp) {
+  WiiMote *self = const_cast<WiiMote*>(static_cast<const WiiMote*>(cwiid_get_data(wiimote)));
 
-  assert(this->wiimote != NULL);
+  if (self == NULL) // There is a race condition where this might happen
+    return;
 
-  mode = on ? mode | CWIID_RPT_EXT : mode & CWIID_RPT_EXT;
+  struct message_request * req = (struct message_request *)malloc( sizeof(*req) + sizeof(req->mesgs) * (len - 1) );
+  req->wiimote = self;
+  req->timestamp = *timestamp;
+  req->len = len;
+  memcpy(req->mesgs, mesgs, len * sizeof(union cwiid_mesg));
 
-  if(cwiid_set_rpt_mode(this->wiimote, mode)) {
-    return -1;
-  }
-
-  return 0;
+  // We need to pass this over to the nodejs thread, so it can create V8 objects
+  // TODO figure out if there is a better way to put an event directly on the main queue/thread.
+  eio_nop (EIO_PRI_DEFAULT, WiiMote::HandleMessagesAfter, req);
 }
 
-int WiiMote::ButtonReporting(bool on) {
-
-	assert(this->wiimote != NULL);
-
-  if(cwiid_get_state(this->wiimote, &this->state)) {
-    return -1;
-  }
-  int mode = this->state.rpt_mode;
-
-  mode = on ? mode | CWIID_RPT_BTN : mode & CWIID_RPT_BTN;
-
-  if(cwiid_set_rpt_mode(this->wiimote, mode)) {
-    return -1;
-  }
-
-  return 0;
-}
-
+/*
 void WiiMote::TriggerMessages(EV_P_ ev_timer *watcher, int revents) {
   WiiMote *wiimote = static_cast<WiiMote*>(watcher->data);
 
-  HandleScope scope;
-
-  Local<Value> argv[1];
-
   assert(wiimote->wiimote != NULL);
+
+  HandleScope scope;
+  Local<Value> argv[1];
 
   if(cwiid_get_state(wiimote->wiimote, &wiimote->state)) {
     argv[0] = Integer::New(-1);
+    wiimote->Emit(error_event, 1, argv);
+
+  } else {
+
+    Local<Array> poss = Array::New(CWIID_IR_SRC_COUNT);
+
+    // Check IR data sources
+    for(int i=0; i < CWIID_IR_SRC_COUNT; i++) {
+      if (!wiimote->state.ir_src[i].valid)
+        break; // Once we find one invalid then we stop
+
+      // Create array of x,y
+      Local<Object> pos = Object::New();
+      pos->Set(String::NewSymbol("x"), Integer::New(wiimote->state.ir_src[i].pos[CWIID_X]));
+      pos->Set(String::NewSymbol("y"), Integer::New(wiimote->state.ir_src[i].pos[CWIID_Y]));
+      pos->Set(String::NewSymbol("size"), Integer::New(wiimote->state.ir_src[i].size));
+
+      poss->Set(Integer::New(i), pos);
+    }
+
+    argv[0] = poss;
     wiimote->Emit(ir_event, 1, argv);
-  }
 
-  // Check IR data sources
-  bool valid = false;
-	for(int i=0; i < CWIID_IR_SRC_COUNT; i++) {
-    valid = true;
-
-    // Create array of x,y
-    Local<Array> pos = Array::New(2);
-    pos->Set(Number::New(0), Integer::New(wiimote->state.ir_src[i].pos[CWIID_X]));
-    pos->Set(Number::New(1), Integer::New(wiimote->state.ir_src[i].pos[CWIID_Y]));
+    // Check Accelerometer data sources
+    Local<Object> pos = Object::New();   // Create array of x,y,z
+    pos->Set(String::NewSymbol("x"), Integer::New(wiimote->state.acc[CWIID_X]) );
+    pos->Set(String::NewSymbol("y"), Integer::New(wiimote->state.acc[CWIID_Y]) );
+    pos->Set(String::NewSymbol("z"), Integer::New(wiimote->state.acc[CWIID_Z]) );
 
     argv[0] = pos;
-    wiimote->Emit(ir_event, 1, argv);
-  }
+    wiimote->Emit(acc_event, 1, argv);
 
-  if(!valid) {
-    argv[0] = Integer::New(-1);
-    wiimote->Emit(ir_event, 1, argv);
-  }
+    // Check Extension data sources
+    bool valid = false;
+    switch(wiimote->state.ext_type) {
+      case CWIID_EXT_NONE:
+        // No extensions so should we do anything?
+        //argv[0] = Integer::New(-1);
+        //wiimote->Emit(nunchuk_event, 1, argv);
+        break;
 
-  // Check Accelerometer data sources
-  //valid = false;
-	//for(int i=0; i < CWIID_ACC_SRC_COUNT; i++) {
-  //  valid = true;
-  //  argv[0] = Integer::New(0);
+      case CWIID_EXT_NUNCHUK:
+        Local<Array> pos = Array::New(2);
+        pos->Set(String::NewSymbol("x"), Integer::New(wiimote->state.ext.nunchuk.stick[CWIID_X]));
+        pos->Set(String::NewSymbol("y"), Integer::New(wiimote->state.ext.nunchuk.stick[CWIID_Y]));
 
-  //  // Create array of x,y,z
-  //  Local<Array> pos = Array::New(2);
-  //  pos->Set(Number::New(0), Integer::New(wiimote->state.ir_src[i].pos[CWIID_X]));
-  //  pos->Set(Number::New(1), Integer::New(wiimote->state.ir_src[i].pos[CWIID_Y]));
+        argv[0] = pos;
+        wiimote->Emit(nunchuk_event, 1, argv);
+    }
 
-  //  argv[1] = pos;
-  //  wiimote->Emit(ir_event, 2, argv);
-  //}
+    // Check buttons
+    if(wiimote->state.buttons > 0) {
+      wiimote->button = wiimote->state.buttons;
+      argv[0] = Integer::New(wiimote->button);
 
-  //if(!valid) {
-  //  argv[0] = Integer::New(-1);
-  //  wiimote->Emit(ir_event, 1, argv);
-  //}
+      wiimote->Emit(buttondown_event, 1, argv);
+    }
+    else if(wiimote->button) {
+      argv[0] = Integer::New(wiimote->button);
 
-  // Check Extension data sources
-  valid = false;
-  switch(wiimote->state.ext_type) {
-    case CWIID_EXT_NONE:
-      argv[0] = Integer::New(-1);
-      wiimote->Emit(nunchuk_event, 1, argv);
-      break;
-
-    case CWIID_EXT_NUNCHUK:
-      argv[0] = Integer::New( 0 );
-
-      Local<Array> pos = Array::New(2);
-      pos->Set(Number::New(0), Integer::New(wiimote->state.ext.nunchuk.stick[CWIID_X]));
-      pos->Set(Number::New(1), Integer::New(wiimote->state.ext.nunchuk.stick[CWIID_Y]));
-
-      argv[1] = pos;
-      wiimote->Emit(nunchuk_event, 2, argv);
-  }
-
-  // Check buttons
-  if(wiimote->state.buttons > 0) {
-    wiimote->button = wiimote->state.buttons;
-    argv[0] = Integer::New(wiimote->button);
-
-    wiimote->Emit(buttondown_event, 1, argv);
-  }
-  else if(wiimote->button) {
-    argv[0] = Integer::New(wiimote->button);
-
-    wiimote->Emit(buttonup_event, 1, argv);
-    wiimote->button = 0;
+      wiimote->Emit(buttonup_event, 1, argv);
+      wiimote->button = 0;
+    }
   }
 
   if(wiimote->msg_timer.repeat == 0) {
@@ -295,6 +360,7 @@ void WiiMote::TriggerMessages(EV_P_ ev_timer *watcher, int revents) {
     wiimote->Unref();
   }
 }
+*/
 
 Handle<Value> WiiMote::New(const Arguments& args) {
   HandleScope scope;
@@ -351,17 +417,18 @@ int WiiMote::EIO_AfterConnect(eio_req* req) {
   HandleScope scope;
 
   connect_request* ar = static_cast<connect_request* >(req->data);
-  ev_unref(EV_DEFAULT_UC);
 
-  Local<Value> argv[1];
+  WiiMote * wiimote = ar->wiimote;
+  Local<Value> argv[1] = { Integer::New(ar->err) };
 
-  argv[0] = Integer::New(ar->err);
-
-  if (ar->err == 0 && ar->wiimote->WatchMessages()) {
-    argv[0] = Integer::New(-1);
+  if (ar->err == 0) {
+    cwiid_set_data(wiimote->wiimote, wiimote);
+    cwiid_set_mesg_callback(wiimote->wiimote, WiiMote::HandleMessages);
+  } else {
+    // We don't unreference by default we want set_msg_callback to keep a reference
+    ev_unref(EV_DEFAULT_UC);
+    ar->wiimote->Unref();
   }
-
-  ar->wiimote->Unref();
 
   TryCatch try_catch;
 
@@ -369,11 +436,10 @@ int WiiMote::EIO_AfterConnect(eio_req* req) {
 
   if(try_catch.HasCaught())
     FatalException(try_catch);
-    
+
   ar->callback.Dispose();
 
   delete ar;
-
 
   return 0;
 }
@@ -382,7 +448,6 @@ Handle<Value> WiiMote::Disconnect(const Arguments& args) {
   HandleScope scope;
 
   WiiMote* wiimote = ObjectWrap::Unwrap<WiiMote>(args.This());
-
   return Integer::New(wiimote->Disconnect());
 }
 
@@ -419,6 +484,7 @@ Handle<Value> WiiMote::Led(const Arguments& args) {
 
   return Integer::New(wiimote->Led(index, on));
 }
+
 
 Handle<Value> WiiMote::IrReporting(const Arguments& args) {
   HandleScope scope;
@@ -478,5 +544,4 @@ Persistent<String> WiiMote::ir_event;
 Persistent<String> WiiMote::acc_event;
 Persistent<String> WiiMote::nunchuk_event;
 Persistent<String> WiiMote::error_event;
-Persistent<String> WiiMote::buttondown_event;
-Persistent<String> WiiMote::buttonup_event;
+Persistent<String> WiiMote::button_event;

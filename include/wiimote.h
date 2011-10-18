@@ -40,12 +40,7 @@ class WiiMote : public EventEmitter {
      * Variable: buttondown_event
      *   Used to dispatch buttondown event.
      */
-    static v8::Persistent<v8::String> buttondown_event;
-    /**
-     * Variable: buttonup_event
-     *   Used to dispatch buttonup event.
-     */
-    static v8::Persistent<v8::String> buttonup_event;
+    static v8::Persistent<v8::String> button_event;
     /**
      * Variable: error_event
      *   Used to dispatch error event.
@@ -113,8 +108,21 @@ class WiiMote : public EventEmitter {
 
     static v8::Handle<v8::Value> Disconnect(const v8::Arguments& args);
 
-    static void TriggerMessages(EV_P_ ev_timer *watcher, int revents);
+    // Callback from libcwiid's thread
+    static void HandleMessages(cwiid_wiimote_t *, int, union cwiid_mesg [], struct timespec *);
 
+    // Callback from Nodejs's thread which calls one of the following methods
+    static int HandleMessagesAfter(eio_req *req);
+
+    // The following methods parse and emit events
+    void HandleAccMessage    (struct timespec *ts, cwiid_acc_mesg * msg);
+    void HandleButtonMessage (struct timespec *ts, cwiid_btn_mesg * msg);
+    void HandleErrorMessage  (struct timespec *ts, cwiid_error_mesg * msg);
+    void HandleNunchukMessage(struct timespec *ts, cwiid_nunchuk_mesg * msg);
+    void HandleIRMessage     (struct timespec *ts, cwiid_ir_mesg * msg);
+    void HandleStatusMessage (struct timespec *ts, cwiid_status_mesg * msg);
+
+    // The following methods turn things on and off
     static v8::Handle<v8::Value> Rumble(const v8::Arguments& args);
     static v8::Handle<v8::Value> Led(const v8::Arguments& args);
     static v8::Handle<v8::Value> IrReporting(const v8::Arguments& args);
@@ -127,21 +135,19 @@ class WiiMote : public EventEmitter {
      *   Pointer to a wiimote handle
      */
     cwiid_wiimote_t* wiimote;
+
     /**
      * Variable: state
      *   struct representing a wiimote state
      */
     struct cwiid_state state;
+
     /**
      * Variable: address
      *   bluetooth address value
      */
     bdaddr_t mac;
-    /**
-     * Variable: msg_timer
-     *   libev timer struct
-     */
-    ev_timer msg_timer;
+
     /**
      * Variable: button
      *   button identifier
@@ -154,6 +160,17 @@ class WiiMote : public EventEmitter {
       int err;
       v8::Persistent<v8::Function> callback;
     };
+
+    /**
+     * Passes a WiiMote event from libcwiid's thread to the Nodejs's thread
+     */
+    struct message_request {
+      WiiMote* wiimote;
+      struct timespec timestamp;
+      int len;
+      union cwiid_mesg mesgs[1]; // This contains len elements
+    };
+
 };
 
 #endif
