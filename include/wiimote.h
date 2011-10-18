@@ -73,13 +73,10 @@ class WiiMote : public EventEmitter {
      */
     int Connect(bdaddr_t * mac);
     int Disconnect();
+
     int Rumble(bool on);
     int Led(int index, bool on);
-    int IrReporting(bool on);
-    int AccReporting(bool on);
-    int ExtReporting(bool on);
-    int ButtonReporting(bool on);
-    int WatchMessages();
+    int Reporting(int mode, bool on);
 
   protected:
     /**

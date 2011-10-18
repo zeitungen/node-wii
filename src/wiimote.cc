@@ -430,8 +430,7 @@ Handle<Value> WiiMote::IrReporting(const Arguments& args) {
   }
 
   bool on = args[0]->ToBoolean()->Value();
-
-  return Integer::New(wiimote->IrReporting(on));
+  return Integer::New(wiimote->Reporting(CWIID_RPT_IR, on));
 }
 
 Handle<Value> WiiMote::AccReporting(const Arguments& args) {
@@ -444,8 +443,7 @@ Handle<Value> WiiMote::AccReporting(const Arguments& args) {
   }
 
   bool on = args[0]->ToBoolean()->Value();
-
-  return Integer::New(wiimote->AccReporting(on));
+  return Integer::New(wiimote->Reporting(CWIID_RPT_ACC, on));
 }
 
 Handle<Value> WiiMote::ExtReporting(const Arguments& args) {
@@ -458,8 +456,7 @@ Handle<Value> WiiMote::ExtReporting(const Arguments& args) {
   }
 
   bool on = args[0]->ToBoolean()->Value();
-
-  return Integer::New(wiimote->ExtReporting(on));
+  return Integer::New(wiimote->Reporting(CWIID_RPT_EXT, on));
 }
 
 Handle<Value> WiiMote::ButtonReporting(const Arguments& args) {
@@ -473,7 +470,7 @@ Handle<Value> WiiMote::ButtonReporting(const Arguments& args) {
 
   bool on = args[0]->ToBoolean()->Value();
 
-  return Integer::New(wiimote->ButtonReporting(on));
+  return Integer::New(wiimote->Reporting(CWIID_RPT_BTN, on));
 }
 
 Persistent<FunctionTemplate> WiiMote::constructor_template;
