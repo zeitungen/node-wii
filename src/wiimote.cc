@@ -28,6 +28,11 @@ WiiMote::~WiiMote() {
 	Disconnect();
 };
 
+#define NODE_DEFINE_CONSTANT_NAME(target, name, constant)                 \
+  (target)->Set(v8::String::NewSymbol(name),                              \
+                v8::Integer::New(constant),                               \
+                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete))
+
 void WiiMote::Initialize (Handle<v8::Object> target) {
   HandleScope scope;
 
@@ -53,6 +58,27 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "acc", AccReporting);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "ext", ExtReporting);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "button", ButtonReporting);
+
+  NODE_DEFINE_CONSTANT_NAME(target, "IR_X_MAX", CWIID_IR_X_MAX);
+  NODE_DEFINE_CONSTANT_NAME(target, "IR_Y_MAX", CWIID_IR_Y_MAX);
+
+  NODE_DEFINE_CONSTANT_NAME(target, "BATTERY_MAX", CWIID_BATTERY_MAX);
+
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_1", CWIID_BTN_1);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_2", CWIID_BTN_2);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_A", CWIID_BTN_A);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_B", CWIID_BTN_B);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_MINUS", CWIID_BTN_MINUS);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_PLUS",  CWIID_BTN_PLUS);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_HOME",  CWIID_BTN_HOME);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_LEFT",  CWIID_BTN_LEFT);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_RIGHT", CWIID_BTN_RIGHT);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_UP",    CWIID_BTN_UP);
+  NODE_DEFINE_CONSTANT_NAME(target, "BTN_DOWN",  CWIID_BTN_DOWN);
+
+  NODE_DEFINE_CONSTANT_NAME(target, "ERROR_NONE",       CWIID_ERROR_NONE);
+  NODE_DEFINE_CONSTANT_NAME(target, "ERROR_DISCONNECT", CWIID_ERROR_DISCONNECT);
+  NODE_DEFINE_CONSTANT_NAME(target, "ERROR_COMM",       CWIID_ERROR_COMM);
 
   target->Set(String::NewSymbol("WiiMote"), constructor_template->GetFunction());
 }
