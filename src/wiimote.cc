@@ -96,11 +96,8 @@ int WiiMote::Disconnect() {
   if (this->wiimote) {
 
     if (cwiid_get_data(this->wiimote)) {
+      cwiid_set_mesg_callback(this->wiimote, NULL);
       cwiid_set_data(this->wiimote, NULL);
-      cwiid_set_mesg_callback(this->wiimote, WiiMote::HandleMessages);
-
-      this->Unref();
-      ev_unref(EV_DEFAULT_UC);
     }
 
     cwiid_close(this->wiimote);
@@ -265,7 +262,8 @@ int WiiMote::HandleMessagesAfter(eio_req *req) {
 void WiiMote::HandleMessages(cwiid_wiimote_t *wiimote, int len, union cwiid_mesg mesgs[], struct timespec *timestamp) {
   WiiMote *self = const_cast<WiiMote*>(static_cast<const WiiMote*>(cwiid_get_data(wiimote)));
 
-  if (self == NULL) // There is a race condition where this might happen
+  // There is a race condition where this might happen
+  if (self == NULL)
     return;
 
   struct message_request * req = (struct message_request *)malloc( sizeof(*req) + sizeof(req->mesgs) * (len - 1) );
@@ -422,13 +420,13 @@ int WiiMote::EIO_AfterConnect(eio_req* req) {
   Local<Value> argv[1] = { Integer::New(ar->err) };
 
   if (ar->err == 0) {
+    // Setup the callback to receive events
     cwiid_set_data(wiimote->wiimote, wiimote);
     cwiid_set_mesg_callback(wiimote->wiimote, WiiMote::HandleMessages);
-  } else {
-    // We don't unreference by default we want set_msg_callback to keep a reference
-    ev_unref(EV_DEFAULT_UC);
-    ar->wiimote->Unref();
   }
+
+  ev_unref(EV_DEFAULT_UC);
+  wiimote->Unref();
 
   TryCatch try_catch;
 
