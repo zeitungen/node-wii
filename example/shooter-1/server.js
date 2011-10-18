@@ -63,6 +63,11 @@ wiimote.connect( '00:17:AB:39:42:B1', function( err ) {
 
   wiimote.button( true );
   wiimote.on( 'button', function( err, data ) {
+    if( err ) {
+      console.log( 'Button error');
+      return;
+    }
+
     console.log( data );
     sendAll( 'button', { data: data } );
   });
@@ -72,6 +77,10 @@ wiimote.connect( '00:17:AB:39:42:B1', function( err ) {
 
   wiimote.ir( true );
   wiimote.on( 'ir', function( err, data ) {
+    if( err ) {
+      console.log( 'IR error');
+      return;
+    }
 
     if(data[0] !== 0 && data[1] !== 0 && bit < 1) {
       bit += 1;
@@ -102,6 +111,10 @@ wiimote.connect( '00:17:AB:39:42:B1', function( err ) {
   //});
 
   wiimote.on( 'accelerometer', function( err, data ) {
+    if( err ) {
+      console.log( 'Accelerometer error');
+      return;
+    }
     console.log( data );
   });
 
