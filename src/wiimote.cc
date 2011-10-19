@@ -44,6 +44,7 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   nunchuk_event = NODE_PSYMBOL("nunchuk");
   error_event   = NODE_PSYMBOL("error");
   button_event  = NODE_PSYMBOL("button");
+  status_event  = NODE_PSYMBOL("status");
 
   constructor_template = Persistent<FunctionTemplate>::New(t);
   constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
@@ -214,6 +215,18 @@ void WiiMote::HandleIRMessage(struct timespec *ts, cwiid_ir_mesg * msg) {
 
   Local<Value> argv[1] = { poss };
   this->Emit(ir_event, 1, argv);
+}
+
+void WiiMote::HandleStatusMessage(struct timespec *ts, cwiid_status_mesg * msg) {
+  HandleScope scope;
+
+  Local<Object> obj = Object::New();
+
+  obj->Set(String::NewSymbol("battery"),    Integer::New(msg->battery));
+  obj->Set(String::NewSymbol("extensions"), Integer::New(msg->ext_type));
+
+  Local<Value> argv[1] = { obj };
+  this->Emit(status_event, 1, argv);
 }
 
 int WiiMote::HandleMessagesAfter(eio_req *req) {
@@ -543,3 +556,4 @@ Persistent<String> WiiMote::acc_event;
 Persistent<String> WiiMote::nunchuk_event;
 Persistent<String> WiiMote::error_event;
 Persistent<String> WiiMote::button_event;
+Persistent<String> WiiMote::status_event;

@@ -46,6 +46,9 @@ class WiiMote : public EventEmitter {
      *   Used to dispatch error event.
      */
     static v8::Persistent<v8::String> error_event;
+
+    static v8::Persistent<v8::String> status_event;
+
     /**
      * Variable: constructor_template
      *   Used to create Node.js constructor.
