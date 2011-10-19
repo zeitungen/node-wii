@@ -163,7 +163,7 @@ int WiiMote::Reporting(int mode, bool on) {
 
   int newmode = this->state.rpt_mode;
 
-  newmode = on ? newmode | mode : newmode & ~mode;
+  newmode = on ? (newmode | mode) : (newmode & ~mode);
 
   if(cwiid_set_rpt_mode(this->wiimote, newmode)) {
     return -1;
@@ -196,9 +196,9 @@ void WiiMote::HandleButtonMessage(struct timespec *ts, cwiid_btn_mesg * msg) {
 void WiiMote::HandleErrorMessage(struct timespec *ts, cwiid_error_mesg * msg) {
   HandleScope scope;
 
-  Local<Integer> btn = Integer::New(msg->error);
+  Local<Integer> err = Integer::New(msg->error);
 
-  Local<Value> argv[1] = { btn };
+  Local<Value> argv[1] = { err };
   this->Emit(error_event, 1, argv);
 }
 
@@ -218,7 +218,7 @@ void WiiMote::HandleIRMessage(struct timespec *ts, cwiid_ir_mesg * msg) {
     // Create array of x,y
     Local<Object> pos = Object::New();
     pos->Set(String::NewSymbol("x"), Integer::New( msg->src[i].pos[CWIID_X] ));
-    pos->Set(String::NewSymbol("y"), Integer::New( msg->src[i].pos[CWIID_X] ));
+    pos->Set(String::NewSymbol("y"), Integer::New( msg->src[i].pos[CWIID_Y] ));
     pos->Set(String::NewSymbol("size"), Integer::New( msg->src[i].size ));
 
     poss->Set(Integer::New(i), pos);
@@ -279,7 +279,7 @@ int WiiMote::HandleMessagesAfter(eio_req *req) {
     }
   }
 
-  free(req);
+  free(r);
   return 0;
 }
 
