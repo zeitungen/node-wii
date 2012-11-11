@@ -12,6 +12,19 @@
 #include <bluetooth/bluetooth.h>
 #include "../vendor/cwiid/libcwiid/cwiid.h"
 
+#define ENABLE_DEBUG
+#ifdef ENABLE_DEBUG
+  #define DEBUG_HEADER fprintf(stderr, "node-usb [%s:%s() %d]: ", __FILE__, __FUNCTION__, __LINE__);
+  #define DEBUG_FOOTER fprintf(stderr, "\n");
+  #define DEBUG(STRING) DEBUG_HEADER fprintf(stderr, "%s", STRING); DEBUG_FOOTER
+  #define DEBUG_OPT(...) DEBUG_HEADER fprintf(stderr, __VA_ARGS__); DEBUG_FOOTER
+  #define DUMP_BYTE_STREAM(STREAM, LENGTH) DEBUG_HEADER for (int i = 0; i < LENGTH; i++) { fprintf(stderr, "0x%02X ", STREAM[i]); } DEBUG_FOOTER
+#else
+  #define DEBUG(str)
+  #define DEBUG_OPT(...)
+  #define DUMP_BYTE_STREAM(STREAM, LENGTH)
+#endif
+
 using namespace v8;
 using namespace node;
 

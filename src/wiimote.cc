@@ -15,16 +15,28 @@
 using namespace v8;
 using namespace node;
 
+int cwiid_set_err(cwiid_err_t *err);
+void WiiMote_cwiid_err(struct wiimote *wiimote, const char *str, va_list ap) {
+	(void)wiimote;
+
+	// TODO move this into a error object, so we can return it in the error objects
+	vfprintf(stdout, str, ap);
+	fprintf(stdout, "\n");
+}
+
+
 /**
  * Constructor: WiiMote
  */
 WiiMote::WiiMote() {
+	DEBUG_OPT("WiiMote()");
 	wiimote = NULL;
 };
 /**
  * Deconstructor: WiiMote
  */
 WiiMote::~WiiMote() {
+	DEBUG_OPT("~WiiMote()");
 	Disconnect();
 };
 
@@ -35,6 +47,10 @@ WiiMote::~WiiMote() {
 
 void WiiMote::Initialize (Handle<v8::Object> target) {
   HandleScope scope;
+
+  DEBUG("WiiMote::Initialize()");
+
+  cwiid_set_err(&WiiMote_cwiid_err);
 
   Local<FunctionTemplate> t = FunctionTemplate::New(New);
   t->Inherit(EventEmitter::constructor_template);
@@ -95,6 +111,7 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
 }
 
 int WiiMote::Connect(bdaddr_t * mac) {
+  DEBUG_OPT("Connecting to %s", batostr(mac));
   bacpy(&this->mac, mac);
 
   if(!(this->wiimote = cwiid_open(&this->mac, CWIID_FLAG_MESG_IFC))) {
