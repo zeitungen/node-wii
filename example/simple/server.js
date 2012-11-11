@@ -1,18 +1,20 @@
-var 
-  wii = require( '../../build/default/nodewii.node' ),
-  express = require( 'express' ),
-  app = express.createServer(), 
-  io  = require('socket.io').listen(app),
-  fs  = require('fs'),
-  traverse = require('traverse');
+/**
+ *  Requires: npm install {express, socket.io}
+ */
+var wii = require('../../nodewii')
+
+  , express = require('express')
+  , app     = express()
+  , http    = require('http')
+  , server  = http.createServer(app)
+
+  , io      = require('socket.io').listen(server);
+
 
 // Setup the Express framework
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/client.html');
 });
-
-var obj = traverse(wii);
-console.log(obj);
 
 //var bundle = require('browserify')(__dirname + '/entry.js');
 //app.use(bundle);
@@ -126,4 +128,4 @@ io.sockets.on( 'connection', function( socket ) {
 */
 });
 
-app.listen(8888);
+server.listen(8888);
