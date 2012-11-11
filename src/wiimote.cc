@@ -1,11 +1,15 @@
 /*
  * Copyright 2011, Tim Branyen @tbranyen <tim@tabdeveloper.com>
  * Dual licensed under the MIT and GPL licenses.
+ *
+ * TODO
+ *  Set cwiid_set_err so we can print helpful messages
  */
 
 #include <v8.h>
 #include <node.h>
 #include <node_events.h>
+#include <stdlib.h>
 
 #include <bluetooth/bluetooth.h>
 #include "../vendor/cwiid/libcwiid/cwiid.h"
