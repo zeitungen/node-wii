@@ -106,7 +106,7 @@ class WiiMote : public EventEmitter {
      *   v8::Object args.This()
      */
     static v8::Handle<v8::Value> Connect(const v8::Arguments& args);
-    static int EIO_Connect(eio_req* req);
+    static void EIO_Connect(eio_req* req);
     static int EIO_AfterConnect(eio_req* req);
 
     static v8::Handle<v8::Value> Disconnect(const v8::Arguments& args);

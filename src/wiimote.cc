@@ -342,14 +342,12 @@ Handle<Value> WiiMote::Connect(const Arguments& args) {
   return Undefined();
 }
 
-int WiiMote::EIO_Connect(eio_req* req) {
+void WiiMote::EIO_Connect(eio_req* req) {
   connect_request* ar = static_cast<connect_request* >(req->data);
 
   assert(ar->wiimote != NULL);
 
   ar->err = ar->wiimote->Connect(&ar->mac);
-
-  return 0;
 }
 
 int WiiMote::EIO_AfterConnect(eio_req* req) {
