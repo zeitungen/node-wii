@@ -7,10 +7,9 @@
 #define CONNECT_H
 
 #include <node.h>
-#include <node_events.h>
 
 #include <bluetooth/bluetooth.h>
-#include "../vendor/cwiid/libcwiid/cwiid.h"
+#include <cwiid.h>
 
 #define ENABLE_DEBUG
 #ifdef ENABLE_DEBUG
@@ -32,7 +31,7 @@ using namespace node;
  * Class: WiiMote
  *   Wrapper for libcwiid connect.
  */
-class WiiMote : public EventEmitter {
+class WiiMote : public ObjectWrap {
   public:
     /**
      * Variable: ir_event
@@ -145,6 +144,7 @@ class WiiMote : public EventEmitter {
     static v8::Handle<v8::Value> AccReporting(const v8::Arguments& args);
     static v8::Handle<v8::Value> ExtReporting(const v8::Arguments& args);
     static v8::Handle<v8::Value> ButtonReporting(const v8::Arguments& args);
+
   private:
     /**
      * Variable: wiimote
@@ -184,7 +184,7 @@ class WiiMote : public EventEmitter {
       WiiMote* wiimote;
       struct timespec timestamp;
       int len;
-      union cwiid_mesg mesgs[1]; // This contains len elements
+      union cwiid_mesg mesgs[1]; // Variable size array containing len elements
     };
 
 };

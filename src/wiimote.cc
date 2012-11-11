@@ -8,11 +8,11 @@
 
 #include <v8.h>
 #include <node.h>
-#include <node_events.h>
-#include <stdlib.h>
 
 #include <bluetooth/bluetooth.h>
-#include "../vendor/cwiid/libcwiid/cwiid.h"
+#include "cwiid.h"
+
+#include <stdlib.h>
 
 #include "../include/wiimote.h"
 
@@ -56,19 +56,9 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
 
   cwiid_set_err(&WiiMote_cwiid_err);
 
-  Local<FunctionTemplate> t = FunctionTemplate::New(New);
-  t->Inherit(EventEmitter::constructor_template);
-
-  ir_event      = NODE_PSYMBOL("ir");
-  acc_event     = NODE_PSYMBOL("acc");
-  nunchuk_event = NODE_PSYMBOL("nunchuk");
-  error_event   = NODE_PSYMBOL("error");
-  button_event  = NODE_PSYMBOL("button");
-  status_event  = NODE_PSYMBOL("status");
-
-  constructor_template = Persistent<FunctionTemplate>::New(t);
-  constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
-  constructor_template->SetClassName(String::NewSymbol("WiiMote"));
+  Local<FunctionTemplate> t = FunctionTemplate::New(WiiMote::New);
+  t->InstanceTemplate()->SetInternalFieldCount(1);
+  t->SetClassName(String::NewSymbol("WiiMote"));
 
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "connect", Connect);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "disconnect", Disconnect);
@@ -111,7 +101,7 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   NODE_DEFINE_CONSTANT_NAME(target, "ERROR_DISCONNECT", CWIID_ERROR_DISCONNECT);
   NODE_DEFINE_CONSTANT_NAME(target, "ERROR_COMM",       CWIID_ERROR_COMM);
 
-  target->Set(String::NewSymbol("WiiMote"), constructor_template->GetFunction());
+  target->Set(String::NewSymbol("WiiMote"), t->GetFunction());
 }
 
 int WiiMote::Connect(bdaddr_t * mac) {
@@ -201,8 +191,8 @@ void WiiMote::HandleAccMessage(struct timespec *ts, cwiid_acc_mesg * msg) {
   pos->Set(String::NewSymbol("y"), Integer::New(msg->acc[CWIID_Y]) );
   pos->Set(String::NewSymbol("z"), Integer::New(msg->acc[CWIID_Z]) );
 
-  Local<Value> argv[1] = { pos };
-  this->Emit(acc_event, 1, argv);
+  Local<Value> argv[2] = { String::New("acc"), pos };
+  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
 }
 
 void WiiMote::HandleButtonMessage(struct timespec *ts, cwiid_btn_mesg * msg) {
@@ -210,8 +200,8 @@ void WiiMote::HandleButtonMessage(struct timespec *ts, cwiid_btn_mesg * msg) {
 
   Local<Integer> btn = Integer::New(msg->buttons);
 
-  Local<Value> argv[1] = { btn };
-  this->Emit(button_event, 1, argv);
+  Local<Value> argv[2] = { String::New("button"), btn };
+  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
 }
 
 void WiiMote::HandleErrorMessage(struct timespec *ts, cwiid_error_mesg * msg) {
@@ -219,12 +209,12 @@ void WiiMote::HandleErrorMessage(struct timespec *ts, cwiid_error_mesg * msg) {
 
   Local<Integer> err = Integer::New(msg->error);
 
-  Local<Value> argv[1] = { err };
-  this->Emit(error_event, 1, argv);
+  Local<Value> argv[2] = { String::New("error"), err };
+  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
 }
 
 void WiiMote::HandleNunchukMessage(struct timespec *ts, cwiid_nunchuk_mesg * msg) {
-
+  // TODO - event "nunchuk"
 }
 
 void WiiMote::HandleIRMessage(struct timespec *ts, cwiid_ir_mesg * msg) {
@@ -245,8 +235,8 @@ void WiiMote::HandleIRMessage(struct timespec *ts, cwiid_ir_mesg * msg) {
     poss->Set(Integer::New(i), pos);
   }
 
-  Local<Value> argv[1] = { poss };
-  this->Emit(ir_event, 1, argv);
+  Local<Value> argv[2] = { String::New("ir"), poss };
+  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
 }
 
 void WiiMote::HandleStatusMessage(struct timespec *ts, cwiid_status_mesg * msg) {
@@ -257,8 +247,8 @@ void WiiMote::HandleStatusMessage(struct timespec *ts, cwiid_status_mesg * msg) 
   obj->Set(String::NewSymbol("battery"),    Integer::New(msg->battery));
   obj->Set(String::NewSymbol("extensions"), Integer::New(msg->ext_type));
 
-  Local<Value> argv[1] = { obj };
-  this->Emit(status_event, 1, argv);
+  Local<Value> argv[2] = { String::New("status"), obj };
+  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
 }
 
 int WiiMote::HandleMessagesAfter(eio_req *req) {
@@ -325,10 +315,12 @@ void WiiMote::HandleMessages(cwiid_wiimote_t *wiimote, int len, union cwiid_mesg
 Handle<Value> WiiMote::New(const Arguments& args) {
   HandleScope scope;
 
+  assert(args.IsConstructCall());
+
   WiiMote* wiimote = new WiiMote();
   wiimote->Wrap(args.This());
 
-  return args.This();
+  return scope.Close(args.This());
 }
 
 Handle<Value> WiiMote::Connect(const Arguments& args) {
