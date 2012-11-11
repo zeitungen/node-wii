@@ -39,7 +39,7 @@ var socket = io.listen( app );
 
 
 console.log( 'Put wiimote in discoverable mode...' );
-wiimote.connect( '00:17:AB:39:42:B1', function( err ) {
+wiimote.connect( '00:00:00:00:00:00', function( err ) {
   if( err ) { console.log( 'Could not establish connection'); return; }
   console.log('connected');
 
@@ -82,18 +82,20 @@ wiimote.connect( '00:17:AB:39:42:B1', function( err ) {
       return;
     }
 
-    if(data[0] !== 0 && data[1] !== 0 && bit < 1) {
+    console.log(data);
+
+    if(data['x'] !== 0 && data['y'] !== 0 && bit < 1) {
       bit += 1;
       prev = data;
-      //data[0] = ( data[0] * -1 ) + 500;
+      //data['x'] = ( data['x'] * -1 ) + 500;
     }
-    else if(data[0] !== 0 && data[1] !== 0 && bit === 1) {
-      //data[0] = (data[0]+prev[0]) / 2;
-      //data[0] = ( data[0] * -1 ) + 500;
+    else if(data['x'] !== 0 && data['y'] !== 0 && bit === 1) {
+      //data['x'] = (data['x']+prev['y']) / 2;
+      //data['x'] = ( data['x'] * -1 ) + 500;
 
       //data[1] = (data[1]+prev[1]) / 2;
-      prev[0] = prev[0] * -1;
-      prev[1] = prev[1];
+      prev['x'] = prev['x'] * -1;
+      prev['y'] = prev['y'];
 
       sendAll( 'ir', { data: prev } );
       bit += 1;
