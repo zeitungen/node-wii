@@ -5,6 +5,13 @@
 #include <bluetooth/bluetooth.h>
 #include "vendor/cwiid/libcwiid/cwiid.h"
 
+/**
+ * BRAMP: Some notes
+ * cwiid_set_rpt_mode(wiimote, mode)
+ * #define RPT_BTN_ACC_IR36_1   0x3E  // The two unsupported modes
+ * #define RPT_BTN_ACC_IR36_2   0x3F
+ */
+
 /* This is a sample program written to demonstrate basic CWiid libwiimote
  * usage, until _actual_ documentation can be written.  It's quick and dirty
  * has a horrible interface, but it's sparce enough to pick out the important
