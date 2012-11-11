@@ -2,14 +2,15 @@ Node.js libcwiid bindings
 =======================
 
 Created by Tim Branyen [@tbranyen](http://twitter.com/tbranyen)
+Modified by Andrew Brampton (bramp.net)
 
-Currently under active development (and seeking contributors), `nodewii` provides asynchronous native bindings to the `libcwiid` C API.
+`nodewii` provides asynchronous native bindings to the `libcwiid` C API.
 
 Building and installing
 -----------------------
 
 ### Dependancies ###
-To run `nodewii` you need `Node.js`, `bluez`, and `libcwiid` installed. To run unit tests you will need to have `git` installed and accessible from your `PATH` to fetch any `vendor/` addons. 
+To run `nodewii` you need `Node.js` (>=0.6.19), `bluez`, and `libcwiid` installed. To run unit tests you will need to have `git` installed and accessible from your `PATH` to fetch any `vendor/` addons. 
 
 It is sufficient enough to rely on the system package manager to install libcwiid and bluez.  Refer to your distros repository search
 to find the correct module names and installation procedure.
@@ -22,6 +23,10 @@ to find the correct module names and installation procedure.
 Video demo: [http://vimeo.com/23224874](http://vimeo.com/23224874)
 
 ### Linux/Unix ###
+
+#### Ensure you have the dependancies installed
+
+    $ apt-get install libbluetooth-dev libcwiid-dev
 
 #### Install `nodewii` by cloning source from __GitHub__ and running the `configure`, `make`, and `make install` commands: ####
 \*Note: `nodewii` assumes your library path exists at `~/.node_libraries` you can change this by specifying a new path\*
