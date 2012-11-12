@@ -60,7 +60,6 @@ wiimote.connect( '00:00:00:00:00:00', function( err ) {
 
 	  // Surpress the same object
 	  if (!compareObjects(data, this.lastIr)) {
-		  console.log(data);
 		  io.sockets.emit('ir', data);
 		  this.lastIr = data;
 	  }
@@ -83,10 +82,10 @@ wiimote.connect( '00:00:00:00:00:00', function( err ) {
   });
 
   // Turn on reporting for the following. Each one consumes more battery, so only use when needed
-  wiimote.acc( true );
+  wiimote.acc( false );
   wiimote.ir( true );
   wiimote.button( true );
-  wiimote.ext( true );
+  wiimote.ext( false );
 
   io.sockets.emit('wiimote_connected'); 
 });
