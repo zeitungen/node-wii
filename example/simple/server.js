@@ -10,6 +10,7 @@ var wii = require('../../nodewii')
 
   , io      = require('socket.io').listen(server);
 
+io.set('log level', 2);
 
 // Setup the Express framework
 app.get('/', function (req, res) {
