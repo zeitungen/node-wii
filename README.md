@@ -78,6 +78,11 @@ var wiimote = new wii.WiiMote();
 
 // You may specify a mac address to your wiimote, or use 00:00:00:00:00
 wiimote.connect("00:00:00:00:00", function(err) {
+  if( err ) {
+    console.log( 'Could not establish connection' );
+    return;
+  }
+
   // Enable rumble
   wiimote.rumble(true);
 
