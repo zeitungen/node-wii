@@ -108,6 +108,7 @@ class WiiMote : public ObjectWrap {
      *   v8::Object args.This()
      */
     static v8::Handle<v8::Value> New(const v8::Arguments& args);
+
     /**
      * Function: Connect
      *
@@ -146,6 +147,11 @@ class WiiMote : public ObjectWrap {
     static v8::Handle<v8::Value> ButtonReporting(const v8::Arguments& args);
 
   private:
+    /**
+     * The v8 instance for this object
+     */
+    v8::Handle<v8::Object> self;
+
     /**
      * Variable: wiimote
      *   Pointer to a wiimote handle

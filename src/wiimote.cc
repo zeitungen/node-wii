@@ -19,6 +19,10 @@
 using namespace v8;
 using namespace node;
 
+#define ARRAY_SIZE(a)                               \
+  ((sizeof(a) / sizeof(*(a))) /                     \
+  static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
+
 int cwiid_set_err(cwiid_err_t *err);
 void WiiMote_cwiid_err(struct wiimote *wiimote, const char *str, va_list ap) {
 	(void)wiimote;
@@ -192,7 +196,7 @@ void WiiMote::HandleAccMessage(struct timespec *ts, cwiid_acc_mesg * msg) {
   pos->Set(String::NewSymbol("z"), Integer::New(msg->acc[CWIID_Z]) );
 
   Local<Value> argv[2] = { String::New("acc"), pos };
-  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
+  MakeCallback(self, "emit", ARRAY_SIZE(argv), argv);
 }
 
 void WiiMote::HandleButtonMessage(struct timespec *ts, cwiid_btn_mesg * msg) {
@@ -201,7 +205,7 @@ void WiiMote::HandleButtonMessage(struct timespec *ts, cwiid_btn_mesg * msg) {
   Local<Integer> btn = Integer::New(msg->buttons);
 
   Local<Value> argv[2] = { String::New("button"), btn };
-  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
+  MakeCallback(self, "emit", ARRAY_SIZE(argv), argv);
 }
 
 void WiiMote::HandleErrorMessage(struct timespec *ts, cwiid_error_mesg * msg) {
@@ -210,7 +214,7 @@ void WiiMote::HandleErrorMessage(struct timespec *ts, cwiid_error_mesg * msg) {
   Local<Integer> err = Integer::New(msg->error);
 
   Local<Value> argv[2] = { String::New("error"), err };
-  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
+  MakeCallback(self, "emit", ARRAY_SIZE(argv), argv);
 }
 
 void WiiMote::HandleNunchukMessage(struct timespec *ts, cwiid_nunchuk_mesg * msg) {
@@ -236,7 +240,7 @@ void WiiMote::HandleIRMessage(struct timespec *ts, cwiid_ir_mesg * msg) {
   }
 
   Local<Value> argv[2] = { String::New("ir"), poss };
-  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
+  MakeCallback(self, "emit", ARRAY_SIZE(argv), argv);
 }
 
 void WiiMote::HandleStatusMessage(struct timespec *ts, cwiid_status_mesg * msg) {
@@ -248,7 +252,7 @@ void WiiMote::HandleStatusMessage(struct timespec *ts, cwiid_status_mesg * msg) 
   obj->Set(String::NewSymbol("extensions"), Integer::New(msg->ext_type));
 
   Local<Value> argv[2] = { String::New("status"), obj };
-  //MakeCallback(this, "emit", ARRAY_SIZE(argv), argv);
+  MakeCallback(self, "emit", ARRAY_SIZE(argv), argv);
 }
 
 int WiiMote::HandleMessagesAfter(eio_req *req) {
@@ -319,6 +323,8 @@ Handle<Value> WiiMote::New(const Arguments& args) {
 
   WiiMote* wiimote = new WiiMote();
   wiimote->Wrap(args.This());
+
+  wiimote->self = Persistent<Object>::New(args.This());
 
   return scope.Close(args.This());
 }
@@ -490,9 +496,3 @@ Handle<Value> WiiMote::ButtonReporting(const Arguments& args) {
 }
 
 Persistent<FunctionTemplate> WiiMote::constructor_template;
-Persistent<String> WiiMote::ir_event;
-Persistent<String> WiiMote::acc_event;
-Persistent<String> WiiMote::nunchuk_event;
-Persistent<String> WiiMote::error_event;
-Persistent<String> WiiMote::button_event;
-Persistent<String> WiiMote::status_event;
