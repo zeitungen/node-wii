@@ -61,8 +61,10 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   cwiid_set_err(&WiiMote_cwiid_err);
 
   Local<FunctionTemplate> t = FunctionTemplate::New(WiiMote::New);
-  t->InstanceTemplate()->SetInternalFieldCount(1);
-  t->SetClassName(String::NewSymbol("WiiMote"));
+
+  constructor_template = Persistent<FunctionTemplate>::New(t);
+  constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
+  constructor_template->SetClassName(String::NewSymbol("WiiMote"));
 
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "connect", Connect);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "disconnect", Disconnect);
@@ -105,7 +107,7 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   NODE_DEFINE_CONSTANT_NAME(target, "ERROR_DISCONNECT", CWIID_ERROR_DISCONNECT);
   NODE_DEFINE_CONSTANT_NAME(target, "ERROR_COMM",       CWIID_ERROR_COMM);
 
-  target->Set(String::NewSymbol("WiiMote"), t->GetFunction());
+  target->Set(String::NewSymbol("WiiMote"), constructor_template->GetFunction());
 }
 
 int WiiMote::Connect(bdaddr_t * mac) {
