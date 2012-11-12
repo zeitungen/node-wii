@@ -97,6 +97,16 @@ wiimote.connect("00:00:00:00:00", function(err) {
 });
 ```
 
+### Events ###
+
+*connect
+*disconnect
+*accelerometer
+*button
+*ir
+*status
+
+
 Release information
 -------------------
 
