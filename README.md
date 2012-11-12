@@ -100,6 +100,10 @@ wiimote.connect("00:00:00:00:00", function(err) {
 Release information
 -------------------
 
+### v0.0.2: ###
+* Added a new example using socket.io
+* Changed the use of cwiid to be truely async
+
 ### v0.0.1: ###
 * Some useful methods implemented
 * Partial examples in example directory
