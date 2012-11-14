@@ -1,7 +1,7 @@
 Node.js libcwiid bindings
 =======================
 
-Created by Tim Branyen [@tbranyen](http://twitter.com/tbranyen)
+Created by Tim Branyen [@tbranyen](http://twitter.com/tbranyen)  
 Modified by Andrew Brampton (bramp.net)
 
 nodewii provides asynchronous native bindings to the libcwiid C API.
@@ -104,13 +104,12 @@ wiimote.connect("00:00:00:00:00", function(err) {
 
 ### Events ###
 
-*connect
-*disconnect
-*accelerometer
-*button
-*ir
-*status
-
+* connect
+* disconnect
+* accelerometer
+* button
+* ir
+* status
 
 Release information
 -------------------
