@@ -26,37 +26,32 @@ You can see the pull request here for how it was implemented:
 
 Video demo: [http://vimeo.com/23224874](http://vimeo.com/23224874)
 
-### Linux/Unix ###
+### Linux (Ubuntu/Debian) ###
 
 Ensure you have the dependancies installed
 
 ``` bash
 $ sudo apt-get install libbluetooth-dev libcwiid-dev
+$ sudo npm install -g node-gyp
 ```
 
 Install nodewii by cloning source from __GitHub__ and running the
 configure, make, and make install commands:
 
-Note: nodewii assumes your library path exists at ~/.node_libraries you
-can change this by specifying a new path
     
 ``` bash
 $ git clone git://github.com/bramp/nodewii.git
 $ cd nodewii
 
-$ ./configure
-$ make
-$ make install
+$ node-gyp configure
+$ node-gyp build
 
-$ make install NODE_LIB_PATH=/path/to/your/libraries
 ```
 
-*Updating to a new version*
+A demo applicaton can be run like so:
 
 ``` bash
-$ make update
-
-$ make update NODE_LIB_PATH=/path/to/your/libraries
+$ node example/simple/server.js
 ```
 
 ### Apple OS X/Windows via Cygwin ###
