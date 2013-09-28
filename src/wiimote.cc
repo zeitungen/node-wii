@@ -1,5 +1,6 @@
 /*
  * Copyright 2011, Tim Branyen @tbranyen <tim@tabdeveloper.com>
+ * Copyright 2012-2013, Andrew Brampton <bramp.net>
  * Dual licensed under the MIT and GPL licenses.
  *
  * TODO
@@ -257,9 +258,10 @@ void WiiMote::HandleStatusMessage(struct timespec *ts, cwiid_status_mesg * msg) 
   MakeCallback(self, "emit", ARRAY_SIZE(argv), argv);
 }
 
-int WiiMote::HandleMessagesAfter(eio_req *req) {
+void WiiMote::HandleMessagesAfter(uv_work_t *req, int status) {
   message_request* r = static_cast<message_request* >(req->data);
   WiiMote * self = r->wiimote;
+  delete req;
 
   for (int i = 0; i < r->len; i++) {
     switch(r->mesgs[i].type) {
@@ -297,9 +299,9 @@ int WiiMote::HandleMessagesAfter(eio_req *req) {
   }
 
   free(r);
-  return 0;
 }
 
+// Called by libcwiid when an event from the wiimote arrives
 void WiiMote::HandleMessages(cwiid_wiimote_t *wiimote, int len, union cwiid_mesg mesgs[], struct timespec *timestamp) {
   WiiMote *self = const_cast<WiiMote*>(static_cast<const WiiMote*>(cwiid_get_data(wiimote)));
 
@@ -307,6 +309,7 @@ void WiiMote::HandleMessages(cwiid_wiimote_t *wiimote, int len, union cwiid_mesg
   if (self == NULL)
     return;
 
+  // Make a copy of the message
   struct message_request * req = (struct message_request *)malloc( sizeof(*req) + sizeof(req->mesgs) * (len - 1) );
   req->wiimote = self;
   req->timestamp = *timestamp;
@@ -314,8 +317,9 @@ void WiiMote::HandleMessages(cwiid_wiimote_t *wiimote, int len, union cwiid_mesg
   memcpy(req->mesgs, mesgs, len * sizeof(union cwiid_mesg));
 
   // We need to pass this over to the nodejs thread, so it can create V8 objects
-  // TODO figure out if there is a better way to put an event directly on the main queue/thread.
-  eio_nop (EIO_PRI_DEFAULT, WiiMote::HandleMessagesAfter, req);
+  uv_work_t* uv = new uv_work_t;
+  uv->data = req;
+  uv_queue_work(uv_default_loop(), uv, NULL, WiiMote::HandleMessagesAfter);
 }
 
 Handle<Value> WiiMote::New(const Arguments& args) {
@@ -357,13 +361,15 @@ Handle<Value> WiiMote::Connect(const Arguments& args) {
 
   wiimote->Ref();
 
-  eio_custom(EIO_Connect, EIO_PRI_DEFAULT, EIO_AfterConnect, ar);
-  ev_ref(EV_DEFAULT_UC);
+  uv_work_t* req = new uv_work_t;
+  req->data = ar;
+  uv_queue_work(uv_default_loop(), req, UV_Connect, UV_AfterConnect);
+  //uv_queue_work(uv_default_loop(), req, UV_Connect, (uv_after_work_cb)UV_AfterConnect);
 
   return Undefined();
 }
 
-void WiiMote::EIO_Connect(eio_req* req) {
+void WiiMote::UV_Connect(uv_work_t* req) {
   connect_request* ar = static_cast<connect_request* >(req->data);
 
   assert(ar->wiimote != NULL);
@@ -371,10 +377,11 @@ void WiiMote::EIO_Connect(eio_req* req) {
   ar->err = ar->wiimote->Connect(&ar->mac);
 }
 
-int WiiMote::EIO_AfterConnect(eio_req* req) {
+void WiiMote::UV_AfterConnect(uv_work_t* req, int status) {
   HandleScope scope;
 
   connect_request* ar = static_cast<connect_request* >(req->data);
+  delete req;
 
   WiiMote * wiimote = ar->wiimote;
   Local<Value> argv[1] = { Integer::New(ar->err) };
@@ -385,7 +392,6 @@ int WiiMote::EIO_AfterConnect(eio_req* req) {
     cwiid_set_mesg_callback(wiimote->wiimote, WiiMote::HandleMessages);
   }
 
-  ev_unref(EV_DEFAULT_UC);
   wiimote->Unref();
 
   TryCatch try_catch;
@@ -398,8 +404,6 @@ int WiiMote::EIO_AfterConnect(eio_req* req) {
   ar->callback.Dispose();
 
   delete ar;
-
-  return 0;
 }
 
 Handle<Value> WiiMote::Disconnect(const Arguments& args) {

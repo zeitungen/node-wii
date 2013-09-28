@@ -1,5 +1,6 @@
 /*
  * Copyright 2011, Tim Branyen @tbranyen <tim@tabdeveloper.com>
+ * Copyright 2012-2013, Andrew Brampton <bramp.net>
  * Dual licensed under the MIT and GPL licenses.
  */
 
@@ -119,16 +120,16 @@ class WiiMote : public ObjectWrap {
      *   v8::Object args.This()
      */
     static v8::Handle<v8::Value> Connect(const v8::Arguments& args);
-    static void EIO_Connect(eio_req* req);
-    static int EIO_AfterConnect(eio_req* req);
+    static void UV_Connect(uv_work_t* req);
+    static void UV_AfterConnect(uv_work_t* req, int status);
 
     static v8::Handle<v8::Value> Disconnect(const v8::Arguments& args);
 
     // Callback from libcwiid's thread
     static void HandleMessages(cwiid_wiimote_t *, int, union cwiid_mesg [], struct timespec *);
 
-    // Callback from Nodejs's thread which calls one of the following methods
-    static int HandleMessagesAfter(eio_req *req);
+    // Callback from Nodejs's thread which calls one of the Handle*Message methods
+    static void HandleMessagesAfter(uv_work_t *req, int status);
 
     // The following methods parse and emit events
     void HandleAccMessage    (struct timespec *ts, cwiid_acc_mesg * msg);
