@@ -34,6 +34,9 @@ void WiiMote_cwiid_err(struct wiimote *wiimote, const char *str, va_list ap) {
 }
 
 
+void UV_NOP(uv_work_t* req) { /* No operation */ }
+
+
 /**
  * Constructor: WiiMote
  */
@@ -123,6 +126,7 @@ int WiiMote::Connect(bdaddr_t * mac) {
 }
 
 int WiiMote::Disconnect() {
+  DEBUG_OPT("Disconnect()");
   if (this->wiimote) {
 
     if (cwiid_get_data(this->wiimote)) {
@@ -319,7 +323,12 @@ void WiiMote::HandleMessages(cwiid_wiimote_t *wiimote, int len, union cwiid_mesg
   // We need to pass this over to the nodejs thread, so it can create V8 objects
   uv_work_t* uv = new uv_work_t;
   uv->data = req;
-  uv_queue_work(uv_default_loop(), uv, NULL, WiiMote::HandleMessagesAfter);
+  int r = uv_queue_work(uv_default_loop(), uv, UV_NOP, WiiMote::HandleMessagesAfter);
+  if (r != 0) {
+    DEBUG_OPT("err: %d while queuing wiimote message", r);
+    free(req);
+    delete uv;
+  }
 }
 
 Handle<Value> WiiMote::New(const Arguments& args) {
@@ -363,8 +372,17 @@ Handle<Value> WiiMote::Connect(const Arguments& args) {
 
   uv_work_t* req = new uv_work_t;
   req->data = ar;
-  uv_queue_work(uv_default_loop(), req, UV_Connect, UV_AfterConnect);
-  //uv_queue_work(uv_default_loop(), req, UV_Connect, (uv_after_work_cb)UV_AfterConnect);
+  int r = uv_queue_work(uv_default_loop(), req, UV_Connect, UV_AfterConnect);
+  if (r != 0) {
+
+    ar->callback.Dispose();
+    delete ar;
+    delete req;
+
+    wiimote->Unref();
+
+    return ThrowException(Exception::Error(String::New("Internal error: Failed to queue connect work")));
+  }
 
   return Undefined();
 }

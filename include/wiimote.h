@@ -148,6 +148,7 @@ class WiiMote : public ObjectWrap {
     static v8::Handle<v8::Value> ButtonReporting(const v8::Arguments& args);
 
   private:
+
     /**
      * The v8 instance for this object
      */
