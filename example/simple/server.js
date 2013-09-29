@@ -12,24 +12,14 @@ var wii = require('../../nodewii')
 
 io.set('log level', 2);
 
+server.listen(8888);
+
 // Setup the Express framework
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/client.html');
 });
 
-//var bundle = require('browserify')(__dirname + '/entry.js');
-//app.use(bundle);
-
 app.use(express.static(__dirname + '/static'));
-
-function objectsAreSame(x, y) {
-   for(var propertyName in x) {
-      if(x[propertyName] !== y[propertyName]) {
-         return false;
-      }
-   }
-   return true;
-}
 
 var wiimote = new wii.WiiMote();
 
@@ -39,10 +29,10 @@ wiimote.connect( '00:00:00:00:00:00', function( err ) {
     console.log( 'Could not establish connection');
     return;
   }
-  console.log('connected');
+  console.log('wiimote connected');
+  console.log('point your browser at http://localhost:8888');
 
   wiimote.on( 'button', function( data ) {
-	  console.log(data);
 	  io.sockets.emit('button', data);
   });
 
@@ -127,5 +117,3 @@ io.sockets.on( 'connection', function( socket ) {
   });
 */
 });
-
-server.listen(8888);

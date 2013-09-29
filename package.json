@@ -20,7 +20,9 @@
     "node": ">=0.10.0"
   },
   "devDependencies": {
-    "node-gyp": ">=0.10.x"
+    "node-gyp": ">=0.10.x",
+    "express": "3.x",
+    "socket.io": "0.9.x"
   },
   "license": "GPL"
 }
