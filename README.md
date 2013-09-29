@@ -2,7 +2,7 @@ Node.js libcwiid bindings
 =======================
 
 Created by Tim Branyen [@tbranyen](http://twitter.com/tbranyen)  
-Modified by Andrew Brampton (bramp.net)
+Modified by Andrew Brampton [@thebramp](http://bramp.net)
 
 nodewii provides asynchronous native bindings to the libcwiid C API.
 
@@ -35,17 +35,14 @@ $ sudo apt-get install libbluetooth-dev libcwiid-dev
 $ sudo npm install -g node-gyp
 ```
 
-Install nodewii by cloning source from __GitHub__ and running the
-configure, make, and make install commands:
-
+Install nodewii by cloning source from __GitHub__ and use npm
+to build and install:
     
 ``` bash
 $ git clone git://github.com/bramp/nodewii.git
 $ cd nodewii
 
-$ node-gyp configure
-$ node-gyp build
-
+$ npm -d install
 ```
 
 A demo applicaton can be run like so:
@@ -109,7 +106,12 @@ wiimote.connect("00:00:00:00:00", function(err) {
 Release information
 -------------------
 
-### v0.0.2: ###
+### v0.0.3 (by bramp): ###
+* Upgraded to support node 0.10.0
+* Change build system to node-gyp
+* Change event framework from EIO to UV
+
+### v0.0.2 (by bramp): ###
 * Added a new example using socket.io
 * Changed the use of cwiid to be truely async
 
