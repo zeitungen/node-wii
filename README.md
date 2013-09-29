@@ -2,7 +2,7 @@ Node.js libcwiid bindings
 =======================
 
 Created by Tim Branyen [@tbranyen](http://twitter.com/tbranyen)  
-Modified by Andrew Brampton [@thebramp](http://bramp.net)
+Modified by [Andrew Brampton](http://bramp.net) [@TheBramp](http://twitter.com/TheBramp)
 
 nodewii provides asynchronous native bindings to the libcwiid C API.
 
@@ -10,7 +10,7 @@ Building and installing
 -----------------------
 
 ### Dependencies ###
-To run nodewii you need Node.js (>=v0.8.14), bluez, and libcwiid installed. To 
+To run nodewii you need Node.js (>=v0.10.0), bluez, and libcwiid installed. To 
 run unit tests you will need to have git installed and accessible from your
 PATH to fetch any vendor/ addons. 
 
