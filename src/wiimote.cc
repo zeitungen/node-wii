@@ -3,8 +3,6 @@
  * Copyright 2012-2013, Andrew Brampton <bramp.net>
  * Dual licensed under the MIT and GPL licenses.
  *
- * TODO
- *  Set cwiid_set_err so we can print helpful messages
  */
 
 #include <v8.h>
@@ -25,6 +23,7 @@ using namespace node;
   static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
 int cwiid_set_err(cwiid_err_t *err);
+
 void WiiMote_cwiid_err(struct wiimote *wiimote, const char *str, va_list ap) {
 	(void)wiimote;
 

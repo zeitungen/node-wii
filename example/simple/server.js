@@ -37,6 +37,8 @@ wiimote.connect( '00:00:00:00:00:00', function( err ) {
   });
 
   wiimote.on( 'ir', function( data ) {
+    //console.log('ir', data);
+
 	  function compareObjects(x, y) {
 		  if (typeof x != typeof y)
 			  return false;
@@ -74,9 +76,9 @@ wiimote.connect( '00:00:00:00:00:00', function( err ) {
 
   // Turn on reporting for the following. Each one consumes more battery, so only use when needed
   wiimote.acc( false );
-  wiimote.ir( true );
   wiimote.button( true );
   wiimote.ext( false );
+  wiimote.ir( true );
 
   io.sockets.emit('wiimote_connected'); 
 });

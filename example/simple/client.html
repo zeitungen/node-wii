@@ -179,10 +179,9 @@
 		buttonMap[wiimote.BTN_UP]    = '#up';
 		buttonMap[wiimote.BTN_DOWN]  = '#down';
 
-		//$('#wiimote div').hide();
-		
 	    var socket = io.connect();
 	    socket.on( 'button', function( data ) {
+	    	console.log('button', data);
 	    	for (btn in buttonMap) {
 	    		if ((data & btn) != 0) {
 	    			$(buttonMap[btn]).show();
@@ -195,6 +194,7 @@
 	    $('#wiimote-ir div').jCircle().hide();
 
 	    socket.on( 'ir', function( data ) {
+	    	console.log('ir', data);
 	    	$('#wiimote-ir div').each( function(i, p) {
 	    		var d = data[i];
 	    		if (d && d['size'] > 0) {
@@ -207,19 +207,19 @@
 	    });
 
 	    socket.on( 'accelerometer', function( data ) {
-	    	console.log(data);
+	    	console.log('accelerometer', data);
 	    });
 
 	    socket.on( 'status', function( data ) {
-	    	console.log(data);
+	    	console.log('status', data);
 	    });
 
 	    socket.on( 'connect', function( data ) {
-	    	//console.log(data);
+	    	console.log('connect', data);
 	    });
 	    
 	    socket.on( 'disconnect', function( data ) {
-	    	//console.log(data);
+	    	console.log('disconnect', data);
 	    });
     </script>
   </body>
