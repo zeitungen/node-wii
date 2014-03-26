@@ -1,17 +1,17 @@
 {
   "name": "nodewii",
   "description": "Node.js libcwiid asynchronous native bindings",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "homepage": "https://github.com/bramp/nodewii",
   "author": "Tim Branyen <tim@tabdeveloper.com> (http://twitter.com/tbranyen)",
   "contributors": [{
     "name": "Andrew Brampton",
     "email": "me@bramp.net"
   }],
-  "main": "./build/default/nodewii.node",
+  "main": "./build/Release/nodewii.node",
   "repository": {
     "type": "git",
-    "url": "git://github.com/bramp/nodewii.git"
+    "url": "git://github.com/danyocom/nodewii.git"
   },
   "directories": {
     "build": "./build"
@@ -20,9 +20,6 @@
     "node": ">=0.10.0"
   },
   "devDependencies": {
-    "node-gyp": ">=0.10.x",
-    "express": "3.x",
-    "socket.io": "0.9.x"
   },
   "license": "GPL"
 }
