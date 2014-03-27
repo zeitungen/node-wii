@@ -1,4 +1,4 @@
-var wii = require( '../build/default/nodewii.node' );
+var wii = require( '../build/Release/node-wii.node' );
 
 var wiimote = new wii.WiiMote();
 

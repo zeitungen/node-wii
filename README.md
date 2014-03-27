@@ -4,13 +4,13 @@ Node.js libcwiid bindings
 Created by Tim Branyen [@tbranyen](http://twitter.com/tbranyen)  
 Modified by [Andrew Brampton](http://bramp.net) [@TheBramp](http://twitter.com/TheBramp)
 
-nodewii provides asynchronous native bindings to the libcwiid C API.
+node-wii provides asynchronous native bindings to the libcwiid C API.
 
 Building and installing
 -----------------------
 
 ### Dependencies ###
-To run nodewii you need Node.js (>=v0.10.0), bluez, and libcwiid installed. To 
+To run node-wii you need Node.js (>=v0.10.0), bluez, and libcwiid installed. To 
 run unit tests you will need to have git installed and accessible from your
 PATH to fetch any vendor/ addons. 
 
@@ -19,7 +19,7 @@ libcwiid and bluez.  Refer to your distros repository search to find the
 correct module names and installation procedure.
 
 ### In action ###
-nodewii was implemented at JSconf 2011 for Mary Rose Cook's game Pistol Slut.
+node-wii was implemented at JSconf 2011 for Mary Rose Cook's game Pistol Slut.
 You can see the pull request here for how it was implemented:
 
 [https://github.com/maryrosecook/pistolslut/pull/1](https://github.com/maryrosecook/pistolslut/pull/1)
@@ -35,12 +35,12 @@ $ sudo apt-get install libbluetooth-dev libcwiid-dev
 $ sudo npm install -g node-gyp
 ```
 
-Install nodewii by cloning source from __GitHub__ and use npm
+Install node-wii by cloning source from __GitHub__ and use npm
 to build and install:
     
 ``` bash
-$ git clone git://github.com/bramp/nodewii.git
-$ cd nodewii
+$ git clone git://github.com/bramp/node-wii.git
+$ cd node-wii
 
 $ npm -d install
 ```
@@ -52,7 +52,7 @@ $ node example/simple/server.js
 ```
 
 ### Apple OS X/Windows via Cygwin ###
-nodewii currently does not run on either Mac OS X or Windows machines.  This
+node-wii currently does not run on either Mac OS X or Windows machines.  This
 is a problem with `libcwiid`.  A future plan is to fork `libcwiid` and write
 support for at least Apple OS X.
 
@@ -65,7 +65,7 @@ API Example Usage
 #### Raw API ####
 
 ``` javascript
-var wii = require("nodewii");
+var wii = require("node-wii");
 var wiimote = new wii.WiiMote();
 
 // You may specify a mac address to your wiimote, or use 00:00:00:00:00

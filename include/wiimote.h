@@ -14,7 +14,7 @@
 
 #define ENABLE_DEBUG
 #ifdef ENABLE_DEBUG
-  #define DEBUG_HEADER fprintf(stderr, "nodewii [%s:%s() %d]: ", __FILE__, __FUNCTION__, __LINE__);
+  #define DEBUG_HEADER fprintf(stderr, "node-wii [%s:%s() %d]: ", __FILE__, __FUNCTION__, __LINE__);
   #define DEBUG_FOOTER fprintf(stderr, "\n");
   #define DEBUG(STRING) DEBUG_HEADER fprintf(stderr, "%s", STRING); DEBUG_FOOTER
   #define DEBUG_OPT(...) DEBUG_HEADER fprintf(stderr, __VA_ARGS__); DEBUG_FOOTER

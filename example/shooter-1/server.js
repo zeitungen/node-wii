@@ -1,4 +1,4 @@
-var wii = require( '../../build/default/nodewii.node' ),
+var wii = require( '../../build/Release/node-wii.node' ),
     app = require( 'express' ).createServer(),
     io = require( 'socket.io' ),
     wiimote = new wii.WiiMote();

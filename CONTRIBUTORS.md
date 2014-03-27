@@ -1,4 +1,4 @@
-nodewii contributors (sorted alphabeticaly)
+node-wii contributors (sorted alphabeticaly)
 ============================================
 * **[Tim Branyen](https://github.com/tbranyen)**
 

@@ -1,7 +1,7 @@
 /**
  *  Requires: npm install {express, socket.io}
  */
-var wii = require('../../nodewii')
+var wii = require('../../node-wii')
 
   , express = require('express')
   , app     = express()

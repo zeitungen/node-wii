@@ -1,17 +1,20 @@
 {
-  "name": "nodewii",
+  "name": "node-wii",
   "description": "Node.js libcwiid asynchronous native bindings",
   "version": "0.0.4",
-  "homepage": "https://github.com/bramp/nodewii",
+  "homepage": "https://github.com/danyocom/node-wii",
   "author": "Tim Branyen <tim@tabdeveloper.com> (http://twitter.com/tbranyen)",
   "contributors": [{
     "name": "Andrew Brampton",
     "email": "me@bramp.net"
+  },{
+    "name": "Dan Yocom",
+    "email": "dan.yocom.npmjs@gmail.com"
   }],
-  "main": "./build/Release/nodewii.node",
+  "main": "./build/Release/node-wii.node",
   "repository": {
     "type": "git",
-    "url": "git://github.com/danyocom/nodewii.git"
+    "url": "git://github.com/danyocom/node-wii.git"
   },
   "directories": {
     "build": "./build"
@@ -21,5 +24,5 @@
   },
   "devDependencies": {
   },
-  "license": "GPL"
+  "license": "MIT/GPL"
 }
