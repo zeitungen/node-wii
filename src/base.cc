@@ -12,4 +12,4 @@ void init(Handle<v8::Object> target) {
   WiiMote::Initialize(target);
 }
 
-NODE_MODULE(node-wii, init);
+NODE_MODULE(nodewii, init);
