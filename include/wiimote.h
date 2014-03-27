@@ -12,7 +12,7 @@
 #include <bluetooth/bluetooth.h>
 #include <cwiid.h>
 
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 #ifdef ENABLE_DEBUG
   #define DEBUG_HEADER fprintf(stderr, "node-wii [%s:%s() %d]: ", __FILE__, __FUNCTION__, __LINE__);
   #define DEBUG_FOOTER fprintf(stderr, "\n");
