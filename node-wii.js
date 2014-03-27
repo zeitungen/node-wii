@@ -1,5 +1,5 @@
 // javascript shim that lets our object inherit from EventEmitter
-var WiiMote = require(__dirname + '/build/Release/node-wii.node').WiiMote;
+var WiiMote = require(__dirname + '/build/Release/nodewii.node').WiiMote;
 var events = require('events');
 
 inherits(WiiMote, events.EventEmitter);
