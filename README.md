@@ -105,6 +105,9 @@ wiimote.connect("00:00:00:00:00", function(err) {
 
 Release information
 -------------------
+### v0.0.4 - v0.0.6 (by danyocom): ###
+* Renamed project to node-wii for publishing on npmjs.org
+* Fixed pacakge.json to point to the node-wii.js stub instead of erronusly trying to load the binary directly
 
 ### v0.0.3 (by bramp): ###
 * Upgraded to support node 0.10.0
