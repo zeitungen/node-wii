@@ -3,6 +3,7 @@ Node.js libcwiid bindings
 
 Created by Tim Branyen [@tbranyen](http://twitter.com/tbranyen)  
 Modified by [Andrew Brampton](http://bramp.net) [@TheBramp](http://twitter.com/TheBramp)
+Modified by [Dan Yocom](https://github.com/danyocom)
 
 node-wii provides asynchronous native bindings to the libcwiid C API.
 
@@ -18,14 +19,6 @@ It is sufficient enough to rely on the system package manager to install
 libcwiid and bluez.  Refer to your distros repository search to find the
 correct module names and installation procedure.
 
-### In action ###
-node-wii was implemented at JSconf 2011 for Mary Rose Cook's game Pistol Slut.
-You can see the pull request here for how it was implemented:
-
-[https://github.com/maryrosecook/pistolslut/pull/1](https://github.com/maryrosecook/pistolslut/pull/1)
-
-Video demo: [http://vimeo.com/23224874](http://vimeo.com/23224874)
-
 ### Linux (Ubuntu/Debian) ###
 
 Ensure you have the dependancies installed
@@ -39,7 +32,7 @@ Install node-wii by cloning source from __GitHub__ and use npm
 to build and install:
     
 ``` bash
-$ git clone git://github.com/bramp/node-wii.git
+$ git clone git://github.com/danyocom/node-wii.git
 $ cd node-wii
 
 $ npm -d install
@@ -105,6 +98,9 @@ wiimote.connect("00:00:00:00:00", function(err) {
 
 Release information
 -------------------
+### v0.0.8 (by danyocom): ###
+* Cleaned Up Readme File
+
 ### v0.0.7 (by danyocom): ###
 * Disabled console debug output
 
