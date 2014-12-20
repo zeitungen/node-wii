@@ -77,6 +77,7 @@ void WiiMote::Initialize (Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "acc", AccReporting);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "ext", ExtReporting);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "button", ButtonReporting);
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "find", FindWiiMotes);
 
   NODE_DEFINE_CONSTANT_NAME(target, "IR_X_MAX", CWIID_IR_X_MAX);
   NODE_DEFINE_CONSTANT_NAME(target, "IR_Y_MAX", CWIID_IR_Y_MAX);
@@ -330,6 +331,11 @@ void WiiMote::HandleMessages(cwiid_wiimote_t *wiimote, int len, union cwiid_mesg
   }
 }
 
+int WiiMote::FindWiiMotes(struct cwiid_bdinfo **bdinfo, unsigned int timeout) {
+  DEBUG_OPT("Finding WiiMotes with %d seconds timeout", timeout);
+  return cwiid_get_bdinfo_array(-1, timeout, -1, bdinfo, 0);
+}
+
 Handle<Value> WiiMote::New(const Arguments& args) {
   HandleScope scope;
 
@@ -516,6 +522,80 @@ Handle<Value> WiiMote::ButtonReporting(const Arguments& args) {
   bool on = args[0]->ToBoolean()->Value();
 
   return Integer::New(wiimote->Reporting(CWIID_RPT_BTN, on));
+}
+
+Handle<Value> WiiMote::FindWiiMotes(const Arguments& args) {
+  WiiMote* wiimote = ObjectWrap::Unwrap<WiiMote>(args.This());
+  Local<Function> callback;
+
+  HandleScope scope;
+
+  if(args.Length() == 0 || !args[0]->IsFunction()) {
+    return ThrowException(Exception::Error(String::New("Callback is required and must be a Function.")));
+  }
+
+  callback = Local<Function>::Cast(args[0]);
+
+  findWiiMotes_request* ar = new findWiiMotes_request();
+  ar->wiimote = wiimote;
+  ar->callback = Persistent<Function>::New(callback);
+
+  wiimote->Ref();
+
+  uv_work_t* req = new uv_work_t;
+  req->data = ar;
+  int r = uv_queue_work(uv_default_loop(), req, UV_FindWiiMotes, UV_AfterFindWiiMotes);
+  if (r != 0) {
+
+    ar->callback.Dispose();
+    delete ar;
+    delete req;
+
+    wiimote->Unref();
+
+    return ThrowException(Exception::Error(String::New("Internal error: Failed to queue connect work")));
+  }
+
+  return Undefined();
+}
+
+void WiiMote::UV_FindWiiMotes(uv_work_t* req) {
+  findWiiMotes_request* ar = static_cast<findWiiMotes_request* >(req->data);
+
+  assert(ar->wiimote != NULL);
+
+  ar->nbResults = ar->wiimote->FindWiiMotes(&(ar->bdinfo),5);
+}
+
+void WiiMote::UV_AfterFindWiiMotes(uv_work_t* req, int status) {
+  HandleScope scope;
+
+  findWiiMotes_request* ar = static_cast<findWiiMotes_request* >(req->data);
+  delete req;
+
+  Local<Array> list = Array::New(ar->nbResults);
+  for(int i = 0; i < ar->nbResults; i++) {
+    Local<Object> item = Object::New();
+    item->Set(String::NewSymbol("name"), String::NewSymbol(ar->bdinfo[i].name));
+    item->Set(String::NewSymbol("mac"), String::NewSymbol(batostr(&(ar->bdinfo[i].bdaddr))));
+    list->Set(i, item);
+  }
+
+  WiiMote * wiimote = ar->wiimote;
+  Local<Value> argv[2] = { Integer::New(ar->nbResults), list };
+
+  wiimote->Unref();
+
+  TryCatch try_catch;
+
+  ar->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+
+  if(try_catch.HasCaught())
+    FatalException(try_catch);
+
+  ar->callback.Dispose();
+
+  delete ar;
 }
 
 Persistent<FunctionTemplate> WiiMote::constructor_template;

@@ -85,6 +85,8 @@ class WiiMote : public ObjectWrap {
     int Connect(bdaddr_t * mac);
     int Disconnect();
 
+    int FindWiiMotes(struct cwiid_bdinfo **bdinfo, unsigned int timeout);
+
     int Rumble(bool on);
     int Led(int index, bool on);
     int Reporting(int mode, bool on);
@@ -147,6 +149,10 @@ class WiiMote : public ObjectWrap {
     static v8::Handle<v8::Value> ExtReporting(const v8::Arguments& args);
     static v8::Handle<v8::Value> ButtonReporting(const v8::Arguments& args);
 
+    static v8::Handle<v8::Value> FindWiiMotes(const v8::Arguments& args);
+    static void UV_FindWiiMotes(uv_work_t* req);
+    static void UV_AfterFindWiiMotes(uv_work_t* req, int status);
+
   private:
 
     /**
@@ -193,6 +199,13 @@ class WiiMote : public ObjectWrap {
       struct timespec timestamp;
       int len;
       union cwiid_mesg mesgs[1]; // Variable size array containing len elements
+    };
+
+    struct findWiiMotes_request {
+        WiiMote* wiimote;
+        struct cwiid_bdinfo* bdinfo;
+        int nbResults;
+        v8::Persistent<v8::Function> callback;
     };
 
 };
