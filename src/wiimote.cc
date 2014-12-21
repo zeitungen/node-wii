@@ -369,7 +369,9 @@ Handle<Value> WiiMote::Connect(const Arguments& args) {
   ar->wiimote = wiimote;
 
   String::Utf8Value mac(args[0]);
-  str2ba(*mac, &ar->mac); // TODO Validate the mac and throw an exception if invalid
+  bdaddr_t* ba = strtoba(*mac);
+  bacpy(&ar->mac, ba); // TODO Validate the mac and throw an exception if invalid
+  free(ba);
 
   ar->callback = Persistent<Function>::New(callback);
 
