@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #include <bluetooth/bluetooth.h>
-#include "vendor/cwiid/libcwiid/cwiid.h"
+#include "external/libcwiid/cwiid.h"
 
 /**
  * BRAMP: Some notes

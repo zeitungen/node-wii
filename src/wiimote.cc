@@ -9,7 +9,7 @@
 #include <node.h>
 
 #include <bluetooth/bluetooth.h>
-#include "cwiid.h"
+#include <cwiid.h>
 
 #include <stdlib.h>
 

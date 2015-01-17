@@ -1,3 +1,3 @@
-[submodule "vendor/cwiid"]
-	path = vendor/cwiid
-	url = git://github.com/abstrakraft/cwiid.git
+[submodule "external/libcwiid"]
+	path = external/libcwiid
+	url = git://github.com/zeitungen/libcwiid.git
