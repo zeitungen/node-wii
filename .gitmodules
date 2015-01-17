@@ -1,3 +1,0 @@
-[submodule "external/libcwiid"]
-	path = external/libcwiid
-	url = git://github.com/zeitungen/libcwiid.git
